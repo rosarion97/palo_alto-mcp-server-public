@@ -1,0 +1,31 @@
+version: "2"
+registry:
+  paloalto-firewall:
+    name: Palo Alto Firewall
+    description: Read AND write access to a Palo Alto Networks PAN-OS firewall via the XML API. Query system info, policies, objects, and logs; create/edit/delete address objects, services, tags, and security rules; validate and commit configuration changes. Writes stage to the candidate config and require an explicit commit. Not affiliated with or endorsed by Palo Alto Networks.
+    categories:
+      - security
+      - network
+      - monitoring
+    image: paloalto-mcp-server:latest
+    secrets:
+      - name: PANOS_HOST
+        env: PANOS_HOST
+        required: true
+        description: Hostname or IP of the firewall management interface
+      - name: PANOS_API_KEY
+        env: PANOS_API_KEY
+        required: true
+        description: PAN-OS API key (generate out of band via curl with type=keygen)
+      - name: PANOS_VERIFY_SSL
+        env: PANOS_VERIFY_SSL
+        required: false
+        description: TLS verification — "yes" (default) for production, "no" only for self-signed lab certs
+      - name: PANOS_VSYS
+        env: PANOS_VSYS
+        required: false
+        description: Virtual system to operate on (default vsys1)
+      - name: PANOS_ENABLE_WRITE
+        env: PANOS_ENABLE_WRITE
+        required: false
+        description: Enable config write/commit tools — "yes" (default) or "no" for read-only behavior
