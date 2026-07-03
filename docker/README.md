@@ -134,7 +134,7 @@ docker mcp secret set PANOS_HOST="firewall.example.com"
 docker mcp secret set PANOS_API_KEY="LUFRPT1xxxxxxxxxxxxxxxxxxxxxxxxxx=="
 docker mcp secret set PANOS_VERIFY_SSL="yes"
 docker mcp secret set PANOS_VSYS="vsys1"
-docker mcp secret set PANOS_ENABLE_WRITE="yes"   # set to "no" to run read-only
+docker mcp secret set PANOS_ENABLE_WRITE="no"    # read-only (the default); set "yes" to allow writes
 docker mcp secret list
 ```
 
@@ -336,7 +336,7 @@ This server can change live firewall configuration. Safeguards built in:
 
 1. **Staging by default.** Every write tool targets the **candidate** config (`action=set/edit/delete/move`). Changes are not live until `commit_config` runs. `discard_changes` rolls back the candidate to the running config.
 2. **Dry-run validation.** `validate_commit` runs a full commit validation and surfaces errors/warnings before you commit.
-3. **Write kill-switch.** Set `PANOS_ENABLE_WRITE=no` and every write/commit tool refuses; the server behaves read-only. Flip it to `yes` only when you intend to make changes.
+3. **Read-only by default.** Writes are opt-in: unless `PANOS_ENABLE_WRITE` is explicitly set to `yes`, every write/commit tool refuses and the server behaves read-only. Flip it to `yes` only when you intend to make changes.
 4. **Input validation.** Object names are restricted to `[A-Za-z0-9_.\- ]`; ports, tag colors, and address types are validated against patterns/enums; free-text fields (descriptions, comments, DAG filters) are XML-escaped before being embedded — blocking attribute-quote breakouts and XML injection.
 5. **Well-formed-only raw edits.** `set_config` / `edit_config` require the XPath to start with `/config` and the element to parse as valid XML before anything is sent.
 6. **RBAC is the backstop.** Scope the API key's admin role to exactly what Claude should touch (see [Recommended Firewall Role](#recommended-firewall-role)). The firewall rejects anything the role forbids.
@@ -358,7 +358,7 @@ This server can change live firewall configuration. Safeguards built in:
 ## Troubleshooting
 
 ### "Write operations are disabled"
-`PANOS_ENABLE_WRITE` is unset to `no`/`false`/`0`. Set it to `yes` (and restart) to enable write/commit tools.
+`PANOS_ENABLE_WRITE` is not set to `yes` — writes are disabled by default. Set it to `yes` (and restart) to enable write/commit tools.
 
 ### "Commit returned no job ... no changes to commit"
 There were no staged differences. Stage a change first, or check `get_uncommitted_changes`.

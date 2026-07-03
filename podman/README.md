@@ -153,7 +153,7 @@ printf '%s' 'firewall.example.com' | podman secret create PANOS_HOST -
 printf '%s' 'LUFRPT1xxxxxxxxxxxxxxxxxxxxxxxxxx==' | podman secret create PANOS_API_KEY -
 printf '%s' 'yes' | podman secret create PANOS_VERIFY_SSL -
 printf '%s' 'vsys1' | podman secret create PANOS_VSYS -
-printf '%s' 'yes' | podman secret create PANOS_ENABLE_WRITE -   # 'no' for read-only
+printf '%s' 'no' | podman secret create PANOS_ENABLE_WRITE -    # read-only (the default); 'yes' to allow writes
 ```
 
 A few things to know:
@@ -392,7 +392,7 @@ This server can change live firewall configuration. Safeguards built in:
 
 1. **Staging by default.** Every write tool targets the **candidate** config. Changes are not live until `commit_config` runs. `discard_changes` rolls the candidate back to running.
 2. **Dry-run validation.** `validate_commit` runs a full commit validation and surfaces errors/warnings before you commit.
-3. **Write kill-switch.** Set `PANOS_ENABLE_WRITE=no` and every write/commit tool refuses; the server behaves read-only. Flip it to `yes` only when you intend to make changes.
+3. **Read-only by default.** Writes are opt-in: unless `PANOS_ENABLE_WRITE` is explicitly set to `yes`, every write/commit tool refuses and the server behaves read-only. Flip it to `yes` only when you intend to make changes.
 4. **Input validation.** Object names are restricted to `[A-Za-z0-9_.\- ]`; ports, tag colors, and address types are validated against patterns/enums; free-text fields are XML-escaped before being embedded — blocking attribute-quote breakouts and XML injection.
 5. **Well-formed-only raw edits.** `set_config` / `edit_config` require the XPath to start with `/config` and the element to parse as valid XML before anything is sent.
 6. **RBAC is the backstop.** Scope the API key's admin role to exactly what Claude should touch.
@@ -414,7 +414,7 @@ This server can change live firewall configuration. Safeguards built in:
 ## Troubleshooting
 
 ### "Write operations are disabled"
-The `PANOS_ENABLE_WRITE` secret is `no`/`false`/`0` (or unset to that). Recreate it as `yes` and restart: `podman secret rm PANOS_ENABLE_WRITE && printf '%s' 'yes' | podman secret create PANOS_ENABLE_WRITE -`.
+The `PANOS_ENABLE_WRITE` secret is not `yes` — writes are disabled by default. Recreate it as `yes` and restart: `podman secret rm PANOS_ENABLE_WRITE && printf '%s' 'yes' | podman secret create PANOS_ENABLE_WRITE -`.
 
 ### "Commit returned no job ... no changes to commit"
 There were no staged differences. Stage a change first, or check `get_uncommitted_changes`.

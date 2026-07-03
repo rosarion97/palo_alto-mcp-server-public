@@ -6,8 +6,9 @@ stdio, using the PAN-OS XML API. It can read system info, policies, objects, and
 logs, **and** create / edit / delete address objects, services, tags, and
 security rules — then validate and commit those changes.
 
-Unlike the read-only [panorama-readonly-mcp-server](https://github.com/rosarion97/panorama-readonly-mcp-server),
-this server is **read/write**. Writes are gated behind `PANOS_ENABLE_WRITE` and
+Unlike the read-only [panorama-readonly-mcp-server](https://github.com/rosarion97/panorama-readonly-mcp-server-public),
+this server is **read/write** — but it **ships read-only**: writes stay disabled
+until you explicitly set `PANOS_ENABLE_WRITE=yes`. Enabled writes
 stage to the firewall's **candidate configuration** — nothing goes live until
 you call the `commit_config` tool. A `validate_commit` dry-run catches errors
 first.
@@ -55,8 +56,9 @@ Full tool tables live in the backend READMEs.
 ## Write safety (in one paragraph)
 
 Writes are gated: `PANOS_ENABLE_WRITE` controls the whole write/commit surface,
-and every mutating tool checks `_require_write()` before doing anything — set it
-to `no` and the server behaves read-only regardless of the API role. Mutations
+and every mutating tool checks `_require_write()` before doing anything. The
+gate **defaults to `no`** — the server behaves read-only regardless of the API
+role until you explicitly set it to `yes`. Mutations
 stage to the **candidate configuration** via a shared `_config_action()` helper
 and **only `commit_config` pushes them live**; `validate_commit` dry-runs and
 `discard_changes` reverts. Object names are validated before they reach an
@@ -84,8 +86,9 @@ for the details and the recommended least-privilege firewall role.
 
 All configuration is via environment variables (container secrets or an
 `--env-file`). Required: `PANOS_HOST`, `PANOS_API_KEY`. Optional:
-`PANOS_VERIFY_SSL`, `PANOS_VSYS`, and `PANOS_ENABLE_WRITE` (set `no` to force
-read-only). See `docker/.env.example` for the full list and defaults.
+`PANOS_VERIFY_SSL`, `PANOS_VSYS`, and `PANOS_ENABLE_WRITE` (defaults to `no` —
+read-only — set `yes` to enable writes). See `docker/.env.example` for the full
+list and defaults.
 
 The API key is generated **out of band** with `curl` (backend README, Step 0) —
 never through this server.

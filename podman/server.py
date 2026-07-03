@@ -133,7 +133,8 @@ def _members_xml(values: str, label: str) -> str:
 # ---------------------------------------------------------------------------
 
 def _write_enabled() -> bool:
-    return os.environ.get("PANOS_ENABLE_WRITE", "yes").strip().lower() not in ("no", "false", "0")
+    # Opt-in: writes are OFF unless PANOS_ENABLE_WRITE is explicitly affirmative.
+    return os.environ.get("PANOS_ENABLE_WRITE", "no").strip().lower() in ("yes", "true", "1")
 
 
 def _require_write():
